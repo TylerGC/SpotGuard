@@ -53,7 +53,7 @@ dependencies {
 //	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.16.0'
         
     implementation group: 'de.sonallux.spotify', name: 'spotify-web-api-java', version: '4.1.0'
-    compile 'de.sonallux.spotify:spotify-web-api-java:4.1.0'
+//    compile 'de.sonallux.spotify:spotify-web-api-java:4.1.0'
     
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 }
