@@ -1,18 +1,22 @@
 package SpotGuard.manage;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import SpotGuard.api.Spotify.SpotifyAPI;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
-import de.sonallux.spotify.api.SpotifyApiException;
-import de.sonallux.spotify.api.models.PlaylistTrack;
+import org.apache.hc.core5.http.ParseException;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import SpotGuard.api.Spotify.SpotifyAPI;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
 /**
  * Acts as the controller and user interface for SpotGuard. Allows users to interact with the playlist settings and rules, and routes actions.
@@ -29,7 +33,6 @@ public class Controller {
 
 			@Override
 			public void run() {
-				System.out.println("we clockin'");
 				process();
 			}
 			
@@ -50,29 +53,34 @@ public class Controller {
 	public static void process() {		
 		for (Entry<String, PlayList> entry : Manager.playlistMap.entrySet()) {
 			PlayList pl = entry.getValue();
-			List<Map<String, Object>> toRemove = new ArrayList<Map<String, Object>>();
-			try {
-				for (PlaylistTrack plt : SpotifyAPI.getAPI().getPlaylistsApi().getPlaylistsTracks(pl.playlistID).build().execute().getItems()) {
-					System.out.println("Track: " + plt.getTrack().getUri());
-					if (!pl.whitelist.contains(plt.getAddedBy().getId())) {
-						Map<String, Object> removeTrack = new HashMap<String, Object>();
-						removeTrack.put("uri", plt.getTrack().getUri());
-						//TODO Incorporate "position" to ensure no tracks get deleted unnecessarily. This removes the need for a duplicate check but also means more API calls.
-						toRemove.add(removeTrack);
+			//TODO check if playlist is protected or not!!
+			JsonArray toRemove = new JsonArray();
+			
+				try {
+					for (PlaylistTrack plt : SpotifyAPI.getAPI().getPlaylistsItems(pl.playlistID).build().execute().getItems()) {
+						System.out.println("Track: " + plt.getTrack().getUri());
+						if (!pl.whitelist.contains(plt.getAddedBy().getId())) {
+							//TODO Incorporate "position" to ensure no tracks get deleted unnecessarily. This removes the need for a duplicate check but also means more API calls.
+							JsonObject track = new JsonObject();
+							track.addProperty("uri", plt.getTrack().getUri());
+							toRemove.add(track);
+						}
+						if(toRemove.size() >= 100) {
+							//SpotifyAPI.getAPI().removeItemsFromPlaylist(pl.playlistID, toRemove).build().execute();
+							//TODO Queue removal
+							toRemove = new JsonArray(); // clear out the list and start new
+						}
 					}
-					if(toRemove.size() >= 100) {
-						SpotifyAPI.getAPI().getPlaylistsApi().removeTracksPlaylist(pl.playlistID, toRemove).build().execute();
-						toRemove.clear();
-					}
+				} catch (ParseException | SpotifyWebApiException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				//request user auth here? Maybe thru email?
-				SpotifyAPI.getAPI().getPlaylistsApi().removeTracksPlaylist(pl.playlistID, toRemove).build().execute();
-			} catch (SpotifyApiException e) {
-				if (e.getMessage().contains("403")) {
-					//TODO Request user authentication for track removal.
-				}
-				e.printStackTrace();
-			}
+				//try {
+					//SpotifyAPI.getAPI().removeItemsFromPlaylist(pl.playlistID, toRemove).build().execute();
+				//} catch (ParseException | SpotifyWebApiException | IOException e) {
+				//	// TODO Auto-generated catch block
+				//	e.printStackTrace();
+				//}
 		}
 	}
 	
