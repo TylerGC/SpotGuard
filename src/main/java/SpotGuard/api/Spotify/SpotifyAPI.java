@@ -2,6 +2,7 @@ package SpotGuard.api.Spotify;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.hc.core5.http.ParseException;
 
@@ -12,6 +13,7 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
+import se.michaelthelin.spotify.requests.data.AbstractDataRequest;
 
 /**
  * Spotify API connection.
@@ -64,6 +66,10 @@ public class SpotifyAPI {
 	
 	  public static SpotifyApi getAPI() {
 		  return spotifyApi;
+	  }
+	  
+	  public static CompletableFuture<AbstractDataRequest<?>> queue(AbstractDataRequest<AbstractDataRequest<?>> request) {
+		  return request.executeAsync();
 	  }
 	  
 }

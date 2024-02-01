@@ -3,6 +3,9 @@ package SpotGuard.manage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.hc.core5.http.ParseException;
 
@@ -10,6 +13,7 @@ import SpotGuard.api.Discord.DiscordAPI;
 import SpotGuard.api.Spotify.SpotifyAPI;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
 /**
@@ -31,9 +35,9 @@ public class PlayList {
 		ownerID = oid;
 		discordID = did;
 		whitelist.add(ownerID);
-		try {
 			for (int i = 0; i < 110; i++) {
-				PlaylistTrack[] tracks = SpotifyAPI.getAPI().getPlaylistsItems(plid).offset(i * 100).build().execute().getItems();
+				final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(plid).offset(i * 100).build().executeAsync();
+				PlaylistTrack[] tracks = tracksFuture.join().getItems();
 				for (PlaylistTrack plt : tracks) {
 					addToWhitelist(plt.getAddedBy().getId());
 				}
@@ -41,13 +45,12 @@ public class PlayList {
 					break;
 				}
 			}
-		} catch (ParseException | SpotifyWebApiException | IOException e) {
-			if (e instanceof TooManyRequestsException) {
-				//TODO handle this bullshit >:(
-				System.out.println("Retry after: " + ((TooManyRequestsException)e).getRetryAfter() + " seconds");
-			}
-			e.printStackTrace();
-		}
+//		} catch (ParseException | SpotifyWebApiException | IOException e) {
+//			if (e instanceof TooManyRequestsException) {
+//				//TODO handle this bullshit >:(
+//				System.out.println("Retry after: " + ((TooManyRequestsException)e).getRetryAfter() + " seconds");
+//			}
+//			e.printStackTrace();
 	}
 	
 	public List<String> getWhitelist() {
