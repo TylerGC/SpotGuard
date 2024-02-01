@@ -11,8 +11,6 @@ public class Main {
 		System.out.println("Initializing SpotGuard...");
 		SimpleHTTPServer.listen();
 		System.out.println("HTTP Auth Response Server opened.");
-		new DiscordAPI();
-		System.out.println("Discord API connection established.");
 		new SpotifyAPI();
 		System.out.println("Spotify API connection established.");
 		Controller.loadConfig();
@@ -25,6 +23,8 @@ public class Main {
 		System.out.println("Loaded playlist configuration.");
 		new Controller();
 		System.out.println("SpotGuard is armed.");
+		new DiscordAPI();
+		System.out.println("Discord API connection established.");
 		//TODO Add shutdown hook
 	}
 	

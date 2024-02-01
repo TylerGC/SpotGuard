@@ -1,21 +1,16 @@
 package SpotGuard.manage;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.apache.hc.core5.http.ParseException;
+import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import SpotGuard.api.Spotify.SpotifyAPI;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.SpotifyApiThreading;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
 /**
@@ -29,14 +24,16 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 public class Controller {
 
 	public Controller() {
+
 		TimerTask clock = new TimerTask() {
 
 			@Override
 			public void run() {
-				process();
+				trigger();
 			}
 			
 		};
+		
 		Timer timer = new Timer("Uhh");
 		timer.scheduleAtFixedRate(clock, 50, 60000);
 
@@ -50,15 +47,28 @@ public class Controller {
 		
 	}
 	
+	public static void trigger() {
+		SpotifyApiThreading.THREAD_POOL.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				process();
+			}
+			
+		});
+	}
+	
 	public static void process() {		
+		System.out.println("Cycle: " + System.currentTimeMillis());
 		for (Entry<String, PlayList> entry : Manager.playlistMap.entrySet()) {
 			PlayList pl = entry.getValue();
 			//TODO check if playlist is protected or not!!
 			JsonArray toRemove = new JsonArray();
-			 
-				try {
-					for (PlaylistTrack plt : SpotifyAPI.getAPI().getPlaylistsItems(pl.playlistID).build().execute().getItems()) {
-						System.out.println("Track: " + plt.getTrack().getUri());
+			
+					final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).build().executeAsync();
+	                PlaylistTrack[] tracks = tracksFuture.join().getItems();
+					for (PlaylistTrack plt : tracks) {
+						//System.out.println("Track: " + plt.getTrack().getUri());
 						if (!pl.whitelist.contains(plt.getAddedBy().getId())) {
 							//TODO Incorporate "position" to ensure no tracks get deleted unnecessarily. This removes the need for a duplicate check but also means more API calls.
 							JsonObject track = new JsonObject();
@@ -71,10 +81,6 @@ public class Controller {
 							toRemove = new JsonArray(); // clear out the list and start new
 						}
 					}
-				} catch (ParseException | SpotifyWebApiException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 				//try {
 					//SpotifyAPI.getAPI().removeItemsFromPlaylist(pl.playlistID, toRemove).build().execute();
 				//} catch (ParseException | SpotifyWebApiException | IOException e) {
