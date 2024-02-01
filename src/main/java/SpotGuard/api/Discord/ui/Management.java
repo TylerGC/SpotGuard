@@ -15,6 +15,8 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
+import se.michaelthelin.spotify.exceptions.detailed.UnauthorizedException;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
@@ -28,16 +30,18 @@ public class Management {
 	
 	public static MessageCreateData managementDisplay(String did) { // Damn... StringSelectMenus are not allowed in Modals. This will have to be an ephemeral embedded message. :(
 		MessageCreateBuilder builder = new MessageCreateBuilder();
+		if (Manager.getUsers().get(did) == null) {
+			System.err.println("User needs to register.");
+			return null; //TODO return Registration request method in the form of MessageCreateData.
+		}
 		String sid = Manager.getUsers().get(did).getSpotifyID();
 		try {
 			ArrayList<SelectOption> playlists = new ArrayList<SelectOption>();
 			//TODO Check if playlist is owned by user! This helps reduce errors as well as stay within SelectMenu limits (25)
 			for (PlaylistSimplified ps : SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().execute().getItems()) {
-				System.out.println("Found a playlist. Name: " + ps.getName() + ", coll: " + ps.getIsCollaborative() + ", public: " + ps.getIsPublicAccess());
 				if (ps.getIsPublicAccess()) {
 					PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
 					Manager.addPlayList(pl);
-					System.out.println("Playlist applies!");
 					String status = Manager.playlistMap.get(ps.getId()).getIsProtected() ? "Protected" : "Vulnerable";
 					playlists.add(SelectOption.of(ps.getName(), ps.getId()).withDescription(status));
 					if(playlists.size() >= 25) {
@@ -51,7 +55,12 @@ public class Management {
 			builder.addActionRow(Button.of(ButtonStyle.PRIMARY, "whitelistbutton", "Whitelist"), Button.of(ButtonStyle.PRIMARY, "backupbutton", "Backup").asDisabled(), Button.of(ButtonStyle.PRIMARY, "protectbutton", "Protect"), Button.of(ButtonStyle.DANGER, "stopbutton", "Stop"));
 			return builder.build();
 		} catch (ParseException | SpotifyWebApiException | IOException e) {
-			// TODO Auto-generated catch block
+			if (e instanceof UnauthorizedException) {
+				System.err.println("Token is probably expired. Take this time to send the user an auth request.");
+			} else if (e instanceof TooManyRequestsException) {
+				System.out.println("Retry after: " + ((TooManyRequestsException)e).getRetryAfter() + " seconds");
+				//builder.clear(); //Oooh so we can reference it if it's outside of the try/catch... we should use this to queue calls.
+			}
 			e.printStackTrace();
 		}
 		return null;
@@ -59,29 +68,24 @@ public class Management {
 	
 	public static MessageCreateData whitelistDisplay(String did) {
 		//"managementWhitelist"
-		//Gonna have to read playlist items (tracks) and getAddedBy.
-		//Kind of a blessing in disguise because then the whitelist will be pre-populated, reducing potential for damage.
 		MessageCreateBuilder builder = new MessageCreateBuilder();
 		String sid = Manager.getUsers().get(did).getSpotifyID();
 		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<SelectOption> users = new ArrayList<SelectOption>();
 		try {
-			for (PlaylistTrack pt : SpotifyAPI.getAPI().getPlaylist((String)Manager.getUsers().get(did).getAttribute("managePlaylistSelection")).build().execute().getTracks().getItems()) {
-				System.out.println("We have a playlist track! Added by: " + pt.getAddedBy().getDisplayName());
-				if (!names.contains(pt.getAddedBy().getId())) {
-					names.add(pt.getAddedBy().getId());
-					users.add(SelectOption.of(pt.getAddedBy().getDisplayName(), pt.getAddedBy().getId()).withDescription(Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute("managePlaylistSelection")).getWhitelist().contains(pt.getAddedBy().getId()) ? "Allowed" : "Blocked"));
-				}
+			for (String id : Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute("managePlaylistSelection")).getWhitelist()) {
+				users.add(SelectOption.of(SpotifyAPI.getAPI().getUsersProfile(id).build().execute().getDisplayName(), id));
+
 			}
-			StringSelectMenu userMenu = StringSelectMenu.create("managementWhitelist").addOptions(users).build();
-			builder.setContent("Please select users to manage.");
-			builder.addActionRow(userMenu);
-			return builder.build();
 		} catch (ParseException | SpotifyWebApiException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+		
+		StringSelectMenu userMenu = StringSelectMenu.create("managementWhitelist").addOptions(users).build();
+		builder.setContent("Please select users to manage.");
+		builder.addActionRow(userMenu);
+		return builder.build();
 	}
 	
 	public static MessageCreateData backupDisplay(String did) {

@@ -55,7 +55,7 @@ public class Controller {
 			PlayList pl = entry.getValue();
 			//TODO check if playlist is protected or not!!
 			JsonArray toRemove = new JsonArray();
-			
+			 
 				try {
 					for (PlaylistTrack plt : SpotifyAPI.getAPI().getPlaylistsItems(pl.playlistID).build().execute().getItems()) {
 						System.out.println("Track: " + plt.getTrack().getUri());

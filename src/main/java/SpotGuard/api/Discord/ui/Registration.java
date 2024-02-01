@@ -26,7 +26,7 @@ public class Registration {
 	
 	public static void sendRegistrationReply(User user) {
 		MessageCreateBuilder builder = new MessageCreateBuilder();
-		MessageEmbed me = new MessageEmbed(null, "Thank you for registering with SpotGuard!", "Now that you are registered, you can begin protecting your playlists with SpotGuard! Click on the 'Manage' button below to configure SpotGuard. \n\nSpotGuard may contact you again to authorize actions on your behalf.", EmbedType.UNKNOWN, null, 0, null, null, null, null, null, null, null);
+		MessageEmbed me = new MessageEmbed(null, "Thank you for registering with SpotGuard!", "Now that you are registered, you can begin protecting your playlists with SpotGuard!\n\nClick on the 'Manage' button below to configure SpotGuard.\n\n**Note:** *Opening manager may take a while the first time you open it, especially if you have large playlists.* \n\nSpotGuard may contact you again to authorize actions on your behalf.", EmbedType.UNKNOWN, null, 0, null, null, null, null, null, null, null);
 		Button manage = Button.primary("managebutton", "Manage");
 		Button why = Button.secondary("registrationreplywhy", "Why?");
 		builder.addEmbeds(me)

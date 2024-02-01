@@ -7,19 +7,22 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class ButtonHandler extends ListenerAdapter {
 
+	//TODO Make Management screen one reply that you edit over and over. To stop spam,  and also unwanted form entries.
 	@Override
 	public void onButtonInteraction(ButtonInteractionEvent event) {
 		switch(event.getButton().getId()) {
 		case "managebutton":
-			event.reply(Management.managementDisplay(event.getUser().getId())).setEphemeral(true).submit();
+			event.deferReply(true).submit();
+			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId())).setEphemeral(true).submit();
 			break;
 		case "whitelistbutton":
 			//TODO Edit source event comment... requires MessageEditCreate/MessageEditData. Should be able to change whitelistDisplay return type as it's only accessible thru managementDisplay.
-			event.deferReply().submit();
-			event.reply(Management.whitelistDisplay(event.getUser().getId())).setEphemeral(true).submit();
+			event.deferReply(true).submit();
+			event.getHook().sendMessage(Management.whitelistDisplay(event.getUser().getId())).setEphemeral(true).submit();
 			break;
 		case "protectbutton":
 			Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection")).setIsProtected(true);
+			event.reply("Playlist is now being protected.").setEphemeral(true).submit();
 			break;
 		case "stopbutton":
 			Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection")).setIsProtected(false);
