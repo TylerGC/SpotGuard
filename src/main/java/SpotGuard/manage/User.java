@@ -8,6 +8,7 @@ public class User {
 	private String spotifyID;
 	private String token;
 	private HashMap<String, Object> attributes = new HashMap<String, Object>();
+	private boolean managing = false;
 	
 	public User(String did, String sid, String token) {
 		discordID = did;
@@ -46,6 +47,14 @@ public class User {
 	
 	public Object getAttribute(String key) {
 		return attributes.get(key);
+	}
+	
+	public boolean isManaging() {
+		return managing;
+	}
+	
+	public void setManaging(boolean bool) {
+		managing = bool;
 	}
 	
 }

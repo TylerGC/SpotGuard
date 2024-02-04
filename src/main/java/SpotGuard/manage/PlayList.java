@@ -1,18 +1,10 @@
 package SpotGuard.manage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-import org.apache.hc.core5.http.ParseException;
-
-import SpotGuard.api.Discord.DiscordAPI;
 import SpotGuard.api.Spotify.SpotifyAPI;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
@@ -28,6 +20,7 @@ public class PlayList {
 	String ownerID;
 	String discordID;
 	List<String> whitelist = new ArrayList<String>();
+	List<String> backup = new ArrayList<String>();
 	boolean isProtected = false;
 
 	public PlayList(String plid, String oid, String did) {
