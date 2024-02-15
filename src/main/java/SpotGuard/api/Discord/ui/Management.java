@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
+import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.User;
 
 public class Management {
@@ -37,14 +38,24 @@ public class Management {
 		String sid = Manager.getUsers().get(did).getSpotifyID();
 //		try {
 			ArrayList<SelectOption> playlists = new ArrayList<SelectOption>();
-			Future<Paging<PlaylistSimplified>> tracksFuture = SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().executeAsync();
+			Future<Paging<PlaylistSimplified>> playlistsFuture = SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().executeAsync();
 			PlaylistSimplified[] psa = new PlaylistSimplified[0];
 			try {
-				psa = tracksFuture.get().getItems();
+				psa = playlistsFuture.get().getItems();
 			for (PlaylistSimplified ps : psa) {
 				if (ps.getIsPublicAccess()) {
 					if (!Manager.playlistMap.containsKey(ps.getId())) {
 						PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
+						for (int i = 0; i < 110; i++) {
+							final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).offset(i * 100).build().executeAsync();
+							PlaylistTrack[] tracks = tracksFuture.join().getItems();
+							for (PlaylistTrack plt : tracks) {
+								pl.getWhitelist().put(plt.getAddedBy().getId(), true);
+							}
+							if (tracks.length < 100) {
+								break;
+							}
+						}
 						Manager.addPlayList(pl);
 					}
 					String status = Manager.playlistMap.get(ps.getId()).getIsProtected() ? "Protected" : "Vulnerable";
@@ -90,19 +101,18 @@ public class Management {
 	public static MessageCreateData whitelistDisplay(String did) {
 		//"managementWhitelist"
 		MessageCreateBuilder builder = new MessageCreateBuilder();
-		String sid = Manager.getUsers().get(did).getSpotifyID();
-		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<SelectOption> users = new ArrayList<SelectOption>();
-			for (String id : Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute("managePlaylistSelection")).getWhitelist()) {
+		PlayList pl = Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute(("managePlaylistSelection")));
+			for (String id : pl.getWhitelistMembers()) {
 				final CompletableFuture<User> userFuture = SpotifyAPI.getAPI().getUsersProfile(id).build().executeAsync();
-				String username = userFuture.join().getDisplayName();
-				users.add(SelectOption.of(username, id));
+				User user = userFuture.join();
+				users.add(SelectOption.of(user.getDisplayName(), id).withDescription(pl.isWhitelisted(user.getId()) ? "Allowed" : "Disallowed"));
 
 			}		
 		StringSelectMenu userMenu = StringSelectMenu.create("managementWhitelist").addOptions(users).build();
 		builder.setContent("Please select users to manage.");
 		builder.addActionRow(userMenu);
-		builder.addActionRow(Button.of(ButtonStyle.SUCCESS, "allowbutton", "Allow"), Button.of(ButtonStyle.DANGER, "disallowbutton", "Disallow"), Button.of(ButtonStyle.DANGER, "removebutton", "Remove"), Button.of(ButtonStyle.SECONDARY, "backbutton", "Back"));
+		builder.addActionRow(Button.of(ButtonStyle.SUCCESS, "allowbutton", "Allow"), Button.of(ButtonStyle.DANGER, "disallowbutton", "Disallow"), Button.of(ButtonStyle.DANGER, "removebutton", "Remove").asDisabled(), Button.of(ButtonStyle.SECONDARY, "backbutton", "Back"));
 		return builder.build();
 	}
 	

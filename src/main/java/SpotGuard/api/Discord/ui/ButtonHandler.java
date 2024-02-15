@@ -65,6 +65,22 @@ public class ButtonHandler extends ListenerAdapter {
 			backBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), ""));
 			event.getHook().editMessageById(event.getMessageId(), backBuilder.build()).submit();
 			break;
+		case "allowbutton":
+			event.deferEdit().submit();
+			PlayList apl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
+			apl.setWhitelist((String)Manager.getUsers().get(event.getUser().getId()).getAttribute("manageWhitelistSelection"), true);
+			MessageEditBuilder allowBuilder = new MessageEditBuilder();
+			allowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			event.getHook().editMessageById(event.getMessageId(), allowBuilder.build()).submit();
+			break;
+		case "disallowbutton":
+			event.deferEdit().submit();
+			PlayList dpl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
+			dpl.setWhitelist((String)Manager.getUsers().get(event.getUser().getId()).getAttribute("manageWhitelistSelection"), false);
+			MessageEditBuilder disallowBuilder = new MessageEditBuilder();
+			disallowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			event.getHook().editMessageById(event.getMessageId(), disallowBuilder.build()).submit();
+			break;
 		}
 	}
 	
@@ -74,7 +90,7 @@ public class ButtonHandler extends ListenerAdapter {
 		if (event.getComponent().getId().equals("managementPlaylists")) {
 			Manager.getUsers().get(event.getUser().getId()).setAttribute("managePlaylistSelection", event.getSelectedOptions().getLast().getValue());
 		} else if (event.getComponent().getId().equals("managementWhitelist")) {
-			
+			Manager.getUsers().get(event.getUser().getId()).setAttribute("manageWhitelistSelection", event.getSelectedOptions().getLast().getValue());
 		}
 		event.deferEdit().submit(); //This allows us to log the change on our side without an event failure. Also implies we can edit the message to reflect the choices better. TODO!
 	}
