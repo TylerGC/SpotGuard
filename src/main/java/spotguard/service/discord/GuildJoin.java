@@ -1,4 +1,4 @@
-package SpotGuard.api.Discord;
+package spotguard.service.discord;
 
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;

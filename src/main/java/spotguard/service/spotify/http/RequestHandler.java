@@ -1,11 +1,11 @@
-package SpotGuard.api.Spotify.http;
+package spotguard.service.spotify.http;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-import SpotGuard.manage.User;
+import spotguard.manage.User;
 
 public class RequestHandler {
 

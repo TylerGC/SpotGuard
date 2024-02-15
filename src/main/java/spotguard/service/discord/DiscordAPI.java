@@ -1,9 +1,9 @@
-package SpotGuard.api.Discord;
+package spotguard.service.discord;
 
-import SpotGuard.api.Discord.ui.ButtonHandler;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import spotguard.service.discord.ui.ButtonHandler;
 
 public class DiscordAPI {
 

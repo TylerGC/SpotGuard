@@ -1,13 +1,9 @@
-package SpotGuard.api.Discord.ui;
+package spotguard.service.discord.ui;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import SpotGuard.api.Spotify.SpotifyAPI;
-import SpotGuard.manage.Manager;
-import SpotGuard.manage.PlayList;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -20,6 +16,9 @@ import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.User;
+import spotguard.manage.Manager;
+import spotguard.manage.PlayList;
+import spotguard.service.spotify.SpotifyAPI;
 
 public class Management {
 

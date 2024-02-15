@@ -1,17 +1,12 @@
-package SpotGuard.manage;
+package spotguard.manage;
 
-import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import SpotGuard.api.Spotify.SpotifyAPI;
 import se.michaelthelin.spotify.SpotifyApiThreading;
-import se.michaelthelin.spotify.model_objects.specification.Paging;
-import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
 /**
  * Acts as the controller and user interface for SpotGuard. Allows users to interact with the playlist settings and rules, and routes actions.
@@ -34,7 +29,7 @@ public class Controller {
 			
 		};
 		
-		Timer timer = new Timer("Uhh");
+		Timer timer = new Timer("SpotGuardTick");
 		timer.scheduleAtFixedRate(clock, 50, 60000);
 
 	}

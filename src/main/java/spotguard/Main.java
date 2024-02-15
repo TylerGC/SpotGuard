@@ -1,9 +1,9 @@
-package SpotGuard;
+package spotguard;
 
-import SpotGuard.api.Discord.DiscordAPI;
-import SpotGuard.api.Spotify.SpotifyAPI;
-import SpotGuard.api.Spotify.http.SimpleHTTPServer;
-import SpotGuard.manage.Controller;
+import spotguard.manage.Controller;
+import spotguard.service.discord.DiscordAPI;
+import spotguard.service.spotify.SpotifyAPI;
+import spotguard.service.spotify.http.SimpleHTTPServer;
 
 public class Main {
 
