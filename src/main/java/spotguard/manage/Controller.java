@@ -1,10 +1,17 @@
 package spotguard.manage;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import se.michaelthelin.spotify.SpotifyApiThreading;
 
@@ -35,11 +42,35 @@ public class Controller {
 	}
 	
 	public static void loadConfig() {
-		
+		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
+		        .setPrettyPrinting().create();
+		try {
+			Object object = gson.fromJson(new FileReader("./data/save.JSON"), Object.class);
+//			FileReader fr = new FileReader("./data/save.JSON");
+//			Type typeOfHashMap = new TypeToken<Map<String, String>>() { }.getType();
+//			Map<String, String> newMap = gson.fromJson(json, typeOfHashMap);
+//			Manager.userMap = gson.from
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void saveConfig() {
+		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
+		        .setPrettyPrinting().create();
+		try {
+			FileWriter fw = new FileWriter("./data/save.JSON");
+			gson.toJson(Manager.userMap, fw);
+			gson.toJson(Manager.playlistMap, fw);
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//String playlists = gson.toJson(Manager.playlistMap);
 		
+		System.out.println("Json output: " + gson.toJson(Manager.userMap));		
 	}
 	
 	public static void trigger() {

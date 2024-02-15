@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import spotguard.manage.Controller;
 import spotguard.service.discord.ui.Management;
 import spotguard.service.discord.ui.Registration;
 
@@ -44,6 +45,9 @@ public class CommandHandler extends ListenerAdapter {
 		} else if (event.getName().contentEquals("manage")) {
 			event.deferReply(true).submit();
 			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
+		} else if (event.getName().contentEquals("save")) {
+			event.deferReply(true).submit();
+			Controller.saveConfig();
 		}
 	}
 	
@@ -51,7 +55,8 @@ public class CommandHandler extends ListenerAdapter {
 		guilds.updateCommands()
 		.addCommands(Commands.slash("refresh", "Refreshes commands for guild."),
 					Commands.slash("register", "Register your Spotify account with SpotGuard."),
-					Commands.slash("manage", "Manage your Spotify playlist protection."))
+					Commands.slash("manage", "Manage your Spotify playlist protection."),
+					Commands.slash("save", "Test action for serialization of data"))
 		.submit();
 				//.addOption(OptionType.STRING, "<prompt>", "How you would like the AI to respond.", true));
 	}
