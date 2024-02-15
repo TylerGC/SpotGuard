@@ -1,9 +1,7 @@
-package SpotGuard.api.Discord;
+package spotguard.service.discord;
 
 import java.security.NoSuchAlgorithmException;
 
-import SpotGuard.api.Discord.ui.Management;
-import SpotGuard.api.Discord.ui.Registration;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -12,6 +10,8 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import spotguard.service.discord.ui.Management;
+import spotguard.service.discord.ui.Registration;
 
 public class CommandHandler extends ListenerAdapter {
 

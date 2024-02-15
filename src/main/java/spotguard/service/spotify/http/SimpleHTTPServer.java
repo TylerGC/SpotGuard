@@ -1,4 +1,4 @@
-package SpotGuard.api.Spotify.http;
+package spotguard.service.spotify.http;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

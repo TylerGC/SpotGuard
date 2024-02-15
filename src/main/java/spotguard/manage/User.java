@@ -1,4 +1,4 @@
-package SpotGuard.manage;
+package spotguard.manage;
 
 import java.util.HashMap;
 

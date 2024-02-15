@@ -1,4 +1,4 @@
-package SpotGuard.api.Spotify;
+package spotguard.service.spotify;
 
 import java.io.IOException;
 import java.net.URI;
@@ -6,7 +6,6 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.hc.core5.http.ParseException;
 
-import SpotGuard.manage.Manager;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.SpotifyApiThreading;
 import se.michaelthelin.spotify.SpotifyHttpManager;
@@ -16,6 +15,7 @@ import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCrede
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import se.michaelthelin.spotify.requests.data.AbstractDataRequest;
+import spotguard.manage.Manager;
 
 /**
  * Spotify API connection.

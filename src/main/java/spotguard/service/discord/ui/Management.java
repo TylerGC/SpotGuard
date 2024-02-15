@@ -1,13 +1,9 @@
-package SpotGuard.api.Discord.ui;
+package spotguard.service.discord.ui;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import SpotGuard.api.Spotify.SpotifyAPI;
-import SpotGuard.manage.Manager;
-import SpotGuard.manage.PlayList;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -20,6 +16,9 @@ import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 import se.michaelthelin.spotify.model_objects.specification.User;
+import spotguard.manage.Manager;
+import spotguard.manage.PlayList;
+import spotguard.service.spotify.SpotifyAPI;
 
 public class Management {
 
@@ -43,7 +42,7 @@ public class Management {
 			try {
 				psa = playlistsFuture.get().getItems();
 			for (PlaylistSimplified ps : psa) {
-				if (ps.getIsPublicAccess()) {
+				if (ps.getIsPublicAccess() && ps.getOwner().getId().equals(sid)) {
 					if (!Manager.playlistMap.containsKey(ps.getId())) {
 						PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
 						for (int i = 0; i < 110; i++) {

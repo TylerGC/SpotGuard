@@ -1,18 +1,18 @@
-package SpotGuard.api.Discord.ui;
+package spotguard.service.discord.ui;
 
 import java.security.NoSuchAlgorithmException;
 
-import SpotGuard.api.Discord.DiscordAPI;
-import SpotGuard.api.Spotify.SpotifyAPI;
-import SpotGuard.api.Spotify.http.RequestHandler;
-import SpotGuard.manage.Manager;
-import SpotGuard.manage.PlayList;
-import SpotGuard.manage.User;
 import net.dv8tion.jda.api.entities.EmbedType;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import spotguard.manage.Manager;
+import spotguard.manage.PlayList;
+import spotguard.manage.User;
+import spotguard.service.discord.DiscordAPI;
+import spotguard.service.spotify.SpotifyAPI;
+import spotguard.service.spotify.http.RequestHandler;
 
 public class Registration {
 

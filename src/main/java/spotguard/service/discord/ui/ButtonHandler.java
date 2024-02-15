@@ -1,11 +1,11 @@
-package SpotGuard.api.Discord.ui;
+package spotguard.service.discord.ui;
 
-import SpotGuard.manage.Manager;
-import SpotGuard.manage.PlayList;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import spotguard.manage.Manager;
+import spotguard.manage.PlayList;
 
 public class ButtonHandler extends ListenerAdapter {
 

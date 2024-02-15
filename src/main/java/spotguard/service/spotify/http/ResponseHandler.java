@@ -1,4 +1,4 @@
-package SpotGuard.api.Spotify.http;
+package spotguard.service.spotify.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -6,10 +6,10 @@ import java.io.OutputStream;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import SpotGuard.api.Discord.ui.Registration;
-import SpotGuard.api.Spotify.SpotifyAPI;
-import SpotGuard.manage.Manager;
-import SpotGuard.manage.User;
+import spotguard.manage.Manager;
+import spotguard.manage.User;
+import spotguard.service.discord.ui.Registration;
+import spotguard.service.spotify.SpotifyAPI;
 
 public class ResponseHandler implements HttpHandler {
 
