@@ -1,23 +1,21 @@
 package SpotGuard.api.Discord.ui;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
-
-import org.apache.hc.core5.http.ParseException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import SpotGuard.api.Spotify.SpotifyAPI;
 import SpotGuard.manage.Manager;
 import SpotGuard.manage.PlayList;
+
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
-import se.michaelthelin.spotify.exceptions.detailed.UnauthorizedException;
+
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
@@ -31,7 +29,7 @@ public class Management {
 	//Should definitely utilize StringSelectMenu. Probably create a Player-like "session" system so can track the selections by action...
 	//https://javadoc.io/doc/net.dv8tion/JDA/latest/net/dv8tion/jda/api/interactions/components/selections/StringSelectMenu.html#create(java.lang.String)
 	
-	public static MessageCreateData managementDisplay(String did) { // Damn... StringSelectMenus are not allowed in Modals. This will have to be an ephemeral embedded message. :(
+	public static MessageCreateData managementDisplay(String did, String message) { 
 		MessageCreateBuilder builder = new MessageCreateBuilder();
 		if (Manager.getUsers().get(did) == null) {
 			System.err.println("User needs to register.");
@@ -40,12 +38,26 @@ public class Management {
 		String sid = Manager.getUsers().get(did).getSpotifyID();
 //		try {
 			ArrayList<SelectOption> playlists = new ArrayList<SelectOption>();
-			final CompletableFuture<Paging<PlaylistSimplified>> tracksFuture = SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().executeAsync();
-			PlaylistSimplified[] psa = tracksFuture.join().getItems();
+			Future<Paging<PlaylistSimplified>> playlistsFuture = SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().executeAsync();
+			PlaylistSimplified[] psa = new PlaylistSimplified[0];
+			try {
+				psa = playlistsFuture.get().getItems();
 			for (PlaylistSimplified ps : psa) {
 				if (ps.getIsPublicAccess()) {
-					PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
-					Manager.addPlayList(pl);
+					if (!Manager.playlistMap.containsKey(ps.getId())) {
+						PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
+						for (int i = 0; i < 110; i++) {
+							final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).offset(i * 100).build().executeAsync();
+							PlaylistTrack[] tracks = tracksFuture.join().getItems();
+							for (PlaylistTrack plt : tracks) {
+								pl.getWhitelist().put(plt.getAddedBy().getId(), true);
+							}
+							if (tracks.length < 100) {
+								break;
+							}
+						}
+						Manager.addPlayList(pl);
+					}
 					String status = Manager.playlistMap.get(ps.getId()).getIsProtected() ? "Protected" : "Vulnerable";
 					playlists.add(SelectOption.of(ps.getName(), ps.getId()).withDescription(status));
 					if(playlists.size() >= 25) {
@@ -54,9 +66,25 @@ public class Management {
 				}
 			}
 			StringSelectMenu playlistMenu = StringSelectMenu.create("managementPlaylists").addOptions(playlists).build();
-			builder.setContent("Please select the playlist you would like to manage.");
+			builder.setContent(message + "\n**Please select the playlist you would like to manage.**");
 			builder.addActionRow(playlistMenu);
-			builder.addActionRow(Button.of(ButtonStyle.PRIMARY, "whitelistbutton", "Whitelist"), Button.of(ButtonStyle.PRIMARY, "backupbutton", "Backup").asDisabled(), Button.of(ButtonStyle.PRIMARY, "protectbutton", "Protect"), Button.of(ButtonStyle.DANGER, "stopbutton", "Stop"));
+			//TODO Break out buttons? Make it so Restore is disabled if no backup present.
+			builder.addActionRow(Button.of(ButtonStyle.PRIMARY, "whitelistbutton", "Whitelist"), Button.of(ButtonStyle.PRIMARY, "backupbutton", "Backup").asDisabled(), Button.of(ButtonStyle.PRIMARY, "protectbutton", "Protect"), Button.of(ButtonStyle.DANGER, "stopbutton", "Stop"), Button.of(ButtonStyle.SECONDARY, "restorebutton", "Restore").asDisabled());
+			} catch (InterruptedException | ExecutionException e) {
+				//Shit we're dumb lmao, use e.getCause() to retrieve the TooManyRequestsException in order to get the retry time... gah damn lmao.
+				//((TooManyRequestsException)e.getCause()).getRetryAfter();
+				//Also have UnauthorizedException: The access token expired //obviously this is when we would request the user for a new token. :)
+				//
+				//IMPORTANT: We're going to have to make managementDisplay() THROW the error(s), so we can catch them in a place that allows us to send
+				//this request back to the right place, like where the Event is.
+				if (e.getMessage().contains("Too Many Requests")) {
+					System.out.println("Getting throttled!");
+					SpotifyAPI.throttleWait();
+//					managementDisplay(did, message);
+					return null;
+				}
+				e.printStackTrace();
+			}
 			return builder.build();
 //		} catch (ParseException | SpotifyWebApiException | IOException e) {
 //			if (e instanceof UnauthorizedException) {
@@ -73,18 +101,18 @@ public class Management {
 	public static MessageCreateData whitelistDisplay(String did) {
 		//"managementWhitelist"
 		MessageCreateBuilder builder = new MessageCreateBuilder();
-		String sid = Manager.getUsers().get(did).getSpotifyID();
-		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<SelectOption> users = new ArrayList<SelectOption>();
-			for (String id : Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute("managePlaylistSelection")).getWhitelist()) {
+		PlayList pl = Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute(("managePlaylistSelection")));
+			for (String id : pl.getWhitelistMembers()) {
 				final CompletableFuture<User> userFuture = SpotifyAPI.getAPI().getUsersProfile(id).build().executeAsync();
-				String username = userFuture.join().getDisplayName();
-				users.add(SelectOption.of(username, id));
+				User user = userFuture.join();
+				users.add(SelectOption.of(user.getDisplayName(), id).withDescription(pl.isWhitelisted(user.getId()) ? "Allowed" : "Disallowed"));
 
 			}		
 		StringSelectMenu userMenu = StringSelectMenu.create("managementWhitelist").addOptions(users).build();
 		builder.setContent("Please select users to manage.");
 		builder.addActionRow(userMenu);
+		builder.addActionRow(Button.of(ButtonStyle.SUCCESS, "allowbutton", "Allow"), Button.of(ButtonStyle.DANGER, "disallowbutton", "Disallow"), Button.of(ButtonStyle.DANGER, "removebutton", "Remove").asDisabled(), Button.of(ButtonStyle.SECONDARY, "backbutton", "Back"));
 		return builder.build();
 	}
 	

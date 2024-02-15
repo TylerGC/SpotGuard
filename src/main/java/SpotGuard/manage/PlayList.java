@@ -1,20 +1,8 @@
 package SpotGuard.manage;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import org.apache.hc.core5.http.ParseException;
-
-import SpotGuard.api.Discord.DiscordAPI;
-import SpotGuard.api.Spotify.SpotifyAPI;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
-import se.michaelthelin.spotify.model_objects.specification.Paging;
-import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
 
 /**
  * A PlayList object that represents a playlist under SpotGuard's protection, including the rules to follow and enforce.
@@ -27,39 +15,38 @@ public class PlayList {
 	String playlistID;
 	String ownerID;
 	String discordID;
-	List<String> whitelist = new ArrayList<String>();
+	HashMap<String, Boolean> whitelist = new HashMap<String, Boolean>();
+	List<String> backup = new ArrayList<String>();
 	boolean isProtected = false;
 
 	public PlayList(String plid, String oid, String did) {
 		playlistID = plid;
 		ownerID = oid;
 		discordID = did;
-		whitelist.add(ownerID);
-			for (int i = 0; i < 110; i++) {
-				final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(plid).offset(i * 100).build().executeAsync();
-				PlaylistTrack[] tracks = tracksFuture.join().getItems();
-				for (PlaylistTrack plt : tracks) {
-					addToWhitelist(plt.getAddedBy().getId());
-				}
-				if (tracks.length < 100) {
-					break;
-				}
-			}
-//		} catch (ParseException | SpotifyWebApiException | IOException e) {
-//			if (e instanceof TooManyRequestsException) {
-//				//TODO handle this bullshit >:(
-//				System.out.println("Retry after: " + ((TooManyRequestsException)e).getRetryAfter() + " seconds");
-//			}
-//			e.printStackTrace();
+		whitelist.put(ownerID, true);
 	}
 	
-	public List<String> getWhitelist() {
+	public boolean isWhitelisted(String userID) {
+		if (!whitelist.containsKey(userID))
+			return false;
+		else
+			return whitelist.get(userID);
+	}
+	
+	public void setWhitelist(String userID, boolean value) {
+		whitelist.replace(userID, value);
+	}
+	
+	public HashMap<String, Boolean> getWhitelist() {
 		return whitelist;
 	}
 	
-	public void addToWhitelist(String userID) {
-		if(!whitelist.contains(userID))
-			whitelist.add(userID);
+	public List<String> getWhitelistMembers() {
+		ArrayList<String> members = new ArrayList<String>();
+		for (String member : whitelist.keySet()) {
+			members.add(member);
+		}
+		return members;
 	}
 	
 	public String getOwner() {

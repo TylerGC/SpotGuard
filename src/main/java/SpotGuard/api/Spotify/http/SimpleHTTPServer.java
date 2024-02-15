@@ -7,10 +7,10 @@ import com.sun.net.httpserver.HttpServer;
 
 public class SimpleHTTPServer {
 
+	//TODO incorporate SSL
 	public static void listen() {
 		InetSocketAddress serverAddress = null;
-			//serverAddress = new InetSocketAddress(InetAddress.getByName("www.spotguard.app"), 8888);
-			serverAddress = new InetSocketAddress(80);//72.185.58.246
+			serverAddress = new InetSocketAddress(80);
 		try {
 			HttpServer server = HttpServer.create(serverAddress, 0);
 			server.createContext("/register", new ResponseHandler());

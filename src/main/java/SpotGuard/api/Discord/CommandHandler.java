@@ -43,7 +43,7 @@ public class CommandHandler extends ListenerAdapter {
 			}
 		} else if (event.getName().contentEquals("manage")) {
 			event.deferReply(true).submit();
-			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId())).setEphemeral(true).submit();
+			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
 		}
 	}
 	

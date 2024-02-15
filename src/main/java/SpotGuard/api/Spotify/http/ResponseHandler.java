@@ -19,14 +19,26 @@ public class ResponseHandler implements HttpHandler {
 		String token = uri.split("\\?code=")[1].split("&state=")[0];
 		String state = exchange.getRequestURI().toString().split("&state=")[1];
 		handleResponse(exchange);
-		String discordID = RequestHandler.getUser(state).getId();
-	    Manager.addUser(new User(discordID, token), discordID);
-		SpotifyAPI.authorizationCode(token, discordID);
-		Registration.sendRegistrationReply(RequestHandler.getUser(state));
-		RequestHandler.removeUser(state);
+		String discordID = null;
+		if ((discordID = RequestHandler.getRegistrationUser(state)) != null) {
+			User user = new User(discordID, token);
+			Manager.addUser(user, discordID);
+			SpotifyAPI.authorizationCode(token, discordID);
+			Registration.sendRegistrationReply(user);
+			RequestHandler.removeRegistrationUser(state);
+		} else if ((discordID = RequestHandler.getReauthorizationUser(state).getDiscordID()) != null) {
+			User user = Manager.getUsers().get(discordID);
+			SpotifyAPI.authorizationCode(token,  discordID);
+			//Registration.sendReauthorizationReply();
+			RequestHandler.removeReauthorizationUser(state);
+		} else {
+			System.out.println("Invalid Web Request");
+			//TODO respond with invalid request page or redirect to home
+		}
 	}
 	
 	private void handleResponse(HttpExchange exchange) {
+		System.out.println("Handling Web Response");
 		//TODO Reference a better-looking HTMl page.
 		OutputStream outputStream = exchange.getResponseBody();
 		StringBuilder htmlBuilder = new StringBuilder();

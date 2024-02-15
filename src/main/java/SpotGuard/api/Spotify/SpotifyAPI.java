@@ -8,8 +8,10 @@ import org.apache.hc.core5.http.ParseException;
 
 import SpotGuard.manage.Manager;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.SpotifyApiThreading;
 import se.michaelthelin.spotify.SpotifyHttpManager;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
@@ -26,6 +28,7 @@ public class SpotifyAPI {
 	  private static final String clientId = System.getenv("CLIENT_ID");
 	  private static final String clientSecret = System.getenv("CLIENT_SECRET");
 	  private static final URI redirectUri = SpotifyHttpManager.makeUri("http://spotguard.online/register/");
+	  private static int retryTime = 100;
 
 	  private static final SpotifyApi spotifyApi = new SpotifyApi.Builder()
 	    .setClientId(clientId)
@@ -36,7 +39,7 @@ public class SpotifyAPI {
 	  public static String authorizationCodeUri(String state) {
 		  AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
 		          .state(state)
-		          .scope("user-library-modify,user-library-read,playlist-modify-public")
+		          .scope("user-library-modify,user-library-read,playlist-modify-public,user-read-private,user-read-email")
 		          .show_dialog(true)
 		          .build();
 	    final URI uri = authorizationCodeUriRequest.execute();
@@ -61,11 +64,39 @@ public class SpotifyAPI {
 		      Manager.getUsers().get(did).setSpotifyID(spotifyApi.getCurrentUsersProfile().build().execute().getId());
 		    } catch (IOException | SpotifyWebApiException | ParseException e) {
 		      System.out.println("Error: " + e.getMessage());
+		      e.printStackTrace();
 		    }
 		  }
 	
 	  public static SpotifyApi getAPI() {
 		  return spotifyApi;
+	  }
+	  
+	  public static void throttleWait() {
+		  SpotifyApiThreading.THREAD_POOL.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					System.out.println("Trying to obtain retry time");
+					System.out.println(spotifyApi.getCurrentUsersProfile().build().execute().getDisplayName());
+				} catch (ParseException | SpotifyWebApiException | IOException e) {
+					if (e instanceof TooManyRequestsException) {
+						retryTime = ((TooManyRequestsException)e).getRetryAfter();
+						System.out.println("Retry time = " + ((TooManyRequestsException)e).getRetryAfter());
+					}
+					e.printStackTrace();
+				}
+				
+			}
+			  
+		  });
+		  try {
+			  System.out.println("Telling thread to wait for " + (retryTime * 1000));
+			  SpotifyApiThreading.THREAD_POOL.wait(retryTime * 1000);//.wait(time * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	  }
 	  
 	  public static CompletableFuture<AbstractDataRequest<?>> queue(AbstractDataRequest<AbstractDataRequest<?>> request) {

@@ -5,30 +5,51 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-import net.dv8tion.jda.api.entities.User;
+import SpotGuard.manage.User;
 
 public class RequestHandler {
 
-	private static HashMap<String, User> requests = new HashMap<String, User>();
+	private static HashMap<String, String> registrationRequests = new HashMap<String, String>();
+	private static HashMap<String, User> reauthorizationRequests = new HashMap<String, User>();
 	
-	public static void addRequest(User event, String check) {
-		requests.put(check, event);
+	public static void addRegistrationRequest(String discordID, String check) {
+		registrationRequests.put(check, discordID);
 	}
 	
-	public static User getUser(String check) {
-		return requests.get(check);
+	public static void addReauthorizationRequest(User event, String check) {
+		reauthorizationRequests.put(check, event);
 	}
 	
-	public static boolean removeUser(String check) {
-		if (!(requests.remove(check) == null))
+	public static String getRegistrationUser(String check) {
+		return registrationRequests.get(check);
+	}
+	
+	public static User getReauthorizationUser(String check) {
+		return reauthorizationRequests.get(check);
+	}
+	
+	public static boolean removeRegistrationUser(String check) {
+		if (!(registrationRequests.remove(check) == null))
 			return true;
 		return false;
 	}
 	
-	public static String createMD5Hash(String input) throws NoSuchAlgorithmException {
+	public static boolean removeReauthorizationUser(String check) {
+		if (!(reauthorizationRequests.remove(check) == null))
+			return true;
+		return false;
+	}
+	
+	public static String createMD5Hash(String input) {
 
 		      String hashtext = null;
-		      MessageDigest md = MessageDigest.getInstance("MD5");
+		      MessageDigest md = null;
+			try {
+				md = MessageDigest.getInstance("MD5");
+			} catch (NoSuchAlgorithmException e) {
+				// This should never happen.
+				e.printStackTrace();
+			}
 
 		      // Compute message digest of the input
 		      byte[] messageDigest = md.digest(input.getBytes());
