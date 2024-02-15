@@ -14,18 +14,22 @@ public class Main {
 		new SpotifyAPI();
 		System.out.println("Spotify API connection established.");
 		Controller.loadConfig();
-		
-		// TODO Remove test data
-//		PlayList pl = new PlayList("4O0shT6h6OlY8VfZLeA7Pb", "1217057623");
-//		pl.getWhitelist().add("1217057623");
-//		Manager.addPlayList(pl);
-		
 		System.out.println("Loaded playlist configuration.");
 		new Controller();
 		System.out.println("SpotGuard is armed.");
 		new DiscordAPI();
 		System.out.println("Discord API connection established.");
-		//TODO Add shutdown hook
+		Runtime.getRuntime().addShutdownHook(new Thread() 
+	    { 
+	      public void run() 
+	      { 
+	        System.out.println("Shutting down! Saving data...");
+	        Controller.saveConfig();
+	      } 
+	    }); 
+		System.out.println("Shutdown hook registered.");
+		
+		System.out.println("SpotGuard is ready for service!");
 	}
 	
 }

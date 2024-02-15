@@ -79,10 +79,7 @@ public class Controller {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		//String playlists = gson.toJson(Manager.playlistMap);
-		
-		System.out.println("Json output: " + gson.toJson(Manager.userMap));		
+		}		
 	}
 	
 	public static void trigger() {
@@ -98,6 +95,8 @@ public class Controller {
 	
 	public static void process() {		
 		System.out.println("Cycle: " + System.currentTimeMillis());
+		
+		saveConfig();
 //		for (Entry<String, PlayList> entry : Manager.playlistMap.entrySet()) {
 //			PlayList pl = entry.getValue();
 //			//TODO check if playlist is protected or not!!
