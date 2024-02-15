@@ -1,10 +1,14 @@
 package spotguard.manage;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -45,12 +49,18 @@ public class Controller {
 		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
 		        .setPrettyPrinting().create();
 		try {
-			Object object = gson.fromJson(new FileReader("./data/save.JSON"), Object.class);
-//			FileReader fr = new FileReader("./data/save.JSON");
-//			Type typeOfHashMap = new TypeToken<Map<String, String>>() { }.getType();
-//			Map<String, String> newMap = gson.fromJson(json, typeOfHashMap);
-//			Manager.userMap = gson.from
+			String userJson = Files.readString(Path.of("./data/users.JSON"));
+			String playlistJson = Files.readString(Path.of("./data/playlists.JSON"));
+			Type userMapType = new TypeToken<HashMap<String, User>>() { }.getType();
+			Type playlistMapType = new TypeToken<HashMap<String, PlayList>>() { }.getType();
+			HashMap<String, User> loadedUserMap = gson.fromJson(userJson, userMapType);
+			HashMap<String, PlayList> loadedPlaylistMap = gson.fromJson(playlistJson, playlistMapType);
+			Manager.userMap = loadedUserMap;
+			Manager.playlistMap = loadedPlaylistMap;
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -60,10 +70,12 @@ public class Controller {
 		Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
 		        .setPrettyPrinting().create();
 		try {
-			FileWriter fw = new FileWriter("./data/save.JSON");
-			gson.toJson(Manager.userMap, fw);
-			gson.toJson(Manager.playlistMap, fw);
-			fw.close();
+			FileWriter fwu = new FileWriter("./data/users.JSON");
+			gson.toJson(Manager.userMap, fwu);
+			FileWriter fwp = new FileWriter("./data/playlists.JSON");
+			gson.toJson(Manager.playlistMap, fwp);
+			fwu.close();
+			fwp.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
