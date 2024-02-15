@@ -43,7 +43,7 @@ public class Management {
 			try {
 				psa = playlistsFuture.get().getItems();
 			for (PlaylistSimplified ps : psa) {
-				if (ps.getIsPublicAccess()) {
+				if (ps.getIsPublicAccess() && ps.getOwner().getId().equals(sid)) {
 					if (!Manager.playlistMap.containsKey(ps.getId())) {
 						PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
 						for (int i = 0; i < 110; i++) {
