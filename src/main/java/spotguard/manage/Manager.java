@@ -3,6 +3,7 @@ package spotguard.manage;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -42,30 +43,47 @@ public class Manager {
 			PlayList pl = entry.getValue();
 			if (pl.isProtected) {
 				JsonArray toRemove = new JsonArray();
-				final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).build().executeAsync();
-	            PlaylistTrack[] tracks = tracksFuture.join().getItems();
-				for (PlaylistTrack plt : tracks) {
-					if (!pl.whitelist.containsKey(plt.getAddedBy().getId())) {
-						//TODO Incorporate "position" to ensure no tracks get deleted unnecessarily. This removes the need for a duplicate check but also means more API calls.
-						JsonObject track = new JsonObject();
-						track.addProperty("uri", plt.getTrack().getUri());
-						if (!toRemove.contains(track))
-							toRemove.add(track);
+				for (int i = 0; i < 110; i++) {
+					final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).offset(i * 100).build().executeAsync();
+					PlaylistTrack[] tracks = tracksFuture.join().getItems();
+					for(int i2 = 0; i2 < tracks.length; i2++) {
+						PlaylistTrack plt = tracks[i2];
+						String addedBy = plt.getAddedBy().getId();
+						if (!pl.whitelist.containsKey(addedBy) || !pl.whitelist.get(addedBy)) {
+							
+							JsonObject track = new JsonObject();
+							track.addProperty("uri", plt.getTrack().getUri());
+							track.addProperty("position", (i * 100) + i2); //this apparently doesn't work anymore?
+							
+							
+							if (!toRemove.contains(track))
+								toRemove.add(track);
+							
+							if(toRemove.size() >= 100) {
+								removeItemsAsync(pl, toRemove);
+								toRemove = new JsonArray(); // clear out the list and start new
+							}
+						}
 					}
-					if(toRemove.size() >= 100) {
-						removeItemsAsync(pl, toRemove);
-						toRemove = new JsonArray(); // clear out the list and start new
-					}
+					removeItemsAsync(pl, toRemove);
 				}
-				removeItemsAsync(pl, toRemove);
 			}
 		}
 	}
 	
 	public static void removeItemsAsync(PlayList playlist, JsonArray items) {
 		final CompletableFuture<SnapshotResult> removeFuture = SpotifyAPI.getAPI().removeItemsFromPlaylist(playlist.playlistID, items).build().executeAsync();
-		SnapshotResult result = removeFuture.join();
+		try {
+			SnapshotResult result = removeFuture.get();
+			
+		} catch (InterruptedException | ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//TODO oh hey, snapshots are cool. Basically version control for playlists, you should really utilize that. Too bad you designed this before you knew that!
+		
+		
 
 	}
 	

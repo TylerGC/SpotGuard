@@ -1,15 +1,12 @@
 package spotguard.manage;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,9 +17,7 @@ import com.google.gson.reflect.TypeToken;
 import se.michaelthelin.spotify.SpotifyApiThreading;
 
 /**
- * Acts as the controller and user interface for SpotGuard. Allows users to interact with the playlist settings and rules, and routes actions.
- * 
- * TODO: Integrate with Web app/Android app to authorize with Spotify account. Only allow owners of playlist to edit playlist rules.
+ * Acts as the controller for SpotGuard. Executes SpotGuard's background tasks.
  * 
  * @author TylerGC
  *
@@ -95,36 +90,8 @@ public class Controller {
 	
 	public static void process() {		
 		System.out.println("Cycle: " + System.currentTimeMillis());
-		
+		Manager.applyAllPlaylistRules();
 		saveConfig();
-//		for (Entry<String, PlayList> entry : Manager.playlistMap.entrySet()) {
-//			PlayList pl = entry.getValue();
-//			//TODO check if playlist is protected or not!!
-//			JsonArray toRemove = new JsonArray();
-//			
-//					final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).build().executeAsync();
-//	                PlaylistTrack[] tracks = tracksFuture.join().getItems();
-//					for (PlaylistTrack plt : tracks) {
-//						//System.out.println("Track: " + plt.getTrack().getUri());
-//						if (!pl.whitelist.contains(plt.getAddedBy().getId())) {
-//							//TODO Incorporate "position" to ensure no tracks get deleted unnecessarily. This removes the need for a duplicate check but also means more API calls.
-//							JsonObject track = new JsonObject();
-//							track.addProperty("uri", plt.getTrack().getUri());
-//							toRemove.add(track);
-//						}
-//						if(toRemove.size() >= 100) {
-//							//SpotifyAPI.getAPI().removeItemsFromPlaylist(pl.playlistID, toRemove).build().execute();
-//							//TODO Queue removal
-//							toRemove = new JsonArray(); // clear out the list and start new
-//						}
-//					}
-//				//try {
-//					//SpotifyAPI.getAPI().removeItemsFromPlaylist(pl.playlistID, toRemove).build().execute();
-//				//} catch (ParseException | SpotifyWebApiException | IOException e) {
-//				//	// TODO Auto-generated catch block
-//				//	e.printStackTrace();
-//				//}
-//		}
 	}
 	
 }

@@ -77,7 +77,7 @@
       "1217057623": true
     },
     "backup": [],
-    "isProtected": false
+    "isProtected": true
   },
   "1mAFv1XnMvQbJuNZhRvyvH": {
     "playlistID": "1mAFv1XnMvQbJuNZhRvyvH",
@@ -174,7 +174,7 @@
     "ownerID": "1217057623",
     "discordID": "187401097512615937",
     "whitelist": {
-      "1217057623": true,
+      "1217057623": false,
       "1213156458": true
     },
     "backup": [],
