@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
 import se.michaelthelin.spotify.model_objects.special.SnapshotResult;
 import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.PlaylistTrack;
@@ -38,14 +39,14 @@ public class Manager {
 //		whitelistRequests
 	}
 	
-	public static void applyAllPlaylistRules() {
+	public static void applyAllPlaylistRules() throws InterruptedException, ExecutionException {
 		for (Entry<String, PlayList> entry : Manager.playlistMap.entrySet()) {
 			PlayList pl = entry.getValue();
 			if (pl.isProtected) {
 				JsonArray toRemove = new JsonArray();
 				for (int i = 0; i < 110; i++) {
 					final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).offset(i * 100).build().executeAsync();
-					PlaylistTrack[] tracks = tracksFuture.join().getItems();
+					PlaylistTrack[] tracks = tracksFuture.get().getItems();
 					for(int i2 = 0; i2 < tracks.length; i2++) {
 						PlaylistTrack plt = tracks[i2];
 						String addedBy = plt.getAddedBy().getId();
@@ -77,6 +78,9 @@ public class Manager {
 			SnapshotResult result = removeFuture.get();
 			
 		} catch (InterruptedException | ExecutionException e) {
+			if (e.getCause() instanceof TooManyRequestsException) {
+				System.out.println("Retry in: " + ((TooManyRequestsException)e.getCause()).getRetryAfter());
+			}
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

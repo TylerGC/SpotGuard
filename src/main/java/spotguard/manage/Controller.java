@@ -9,12 +9,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import se.michaelthelin.spotify.SpotifyApiThreading;
+import se.michaelthelin.spotify.exceptions.detailed.TooManyRequestsException;
+import spotguard.service.spotify.SpotifyAPI;
 
 /**
  * Acts as the controller for SpotGuard. Executes SpotGuard's background tasks.
@@ -90,7 +93,16 @@ public class Controller {
 	
 	public static void process() {		
 		System.out.println("Cycle: " + System.currentTimeMillis());
-		Manager.applyAllPlaylistRules();
+		try {
+			Manager.applyAllPlaylistRules();
+		} catch (InterruptedException | ExecutionException e) {
+			if (e.getCause() instanceof TooManyRequestsException) {
+				System.out.println("Retry in: " + ((TooManyRequestsException)e.getCause()).getRetryAfter());
+				SpotifyAPI.throttleWait(((TooManyRequestsException)e.getCause()).getRetryAfter());
+			} else {
+				e.printStackTrace();
+			}
+		}
 		saveConfig();
 	}
 	

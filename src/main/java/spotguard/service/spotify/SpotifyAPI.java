@@ -72,25 +72,7 @@ public class SpotifyAPI {
 		  return spotifyApi;
 	  }
 	  
-	  public static void throttleWait() {
-		  SpotifyApiThreading.THREAD_POOL.submit(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					System.out.println("Trying to obtain retry time");
-					System.out.println(spotifyApi.getCurrentUsersProfile().build().execute().getDisplayName());
-				} catch (ParseException | SpotifyWebApiException | IOException e) {
-					if (e instanceof TooManyRequestsException) {
-						retryTime = ((TooManyRequestsException)e).getRetryAfter();
-						System.out.println("Retry time = " + ((TooManyRequestsException)e).getRetryAfter());
-					}
-					e.printStackTrace();
-				}
-				
-			}
-			  
-		  });
+	  public static void throttleWait(int retryTime) {
 		  try {
 			  System.out.println("Telling thread to wait for " + (retryTime * 1000));
 			  SpotifyApiThreading.THREAD_POOL.wait(retryTime * 1000);//.wait(time * 1000);

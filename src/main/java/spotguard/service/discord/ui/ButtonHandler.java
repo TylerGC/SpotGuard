@@ -1,5 +1,7 @@
 package spotguard.service.discord.ui;
 
+import java.util.concurrent.ExecutionException;
+
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,13 +16,23 @@ public class ButtonHandler extends ListenerAdapter {
 		switch(event.getButton().getId()) {
 		case "managebutton":
 			event.deferReply(true).submit();
-			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
+			try {
+				event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			break;
 			
 		case "whitelistbutton":
 			event.deferEdit().submit();
 			MessageEditBuilder builder = new MessageEditBuilder();
-			builder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			try {
+				builder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), builder.build()).submit();
 			break;
 			
@@ -29,7 +41,12 @@ public class ButtonHandler extends ListenerAdapter {
 			PlayList protectPl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
 			protectPl.setIsProtected(true);
 			MessageEditBuilder protectEditBuilder = new MessageEditBuilder();
-			protectEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist is now being protected!*"));
+			try {
+				protectEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist is now being protected!*"));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), protectEditBuilder.build()).submit();
 			break;
 			
@@ -38,7 +55,12 @@ public class ButtonHandler extends ListenerAdapter {
 			PlayList stopPl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
 			stopPl.setIsProtected(false);
 			MessageEditBuilder stopEditBuilder = new MessageEditBuilder();
-			stopEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist is no longer being protected!*"));
+			try {
+				stopEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist is no longer being protected!*"));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), stopEditBuilder.build()).submit();
 			break;
 			
@@ -55,14 +77,24 @@ public class ButtonHandler extends ListenerAdapter {
 			backupPl.setIsProtected(false);
 			//TODO restore from backup.
 			MessageEditBuilder backupEditBuilder = new MessageEditBuilder();
-			backupEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist has been successfully backed up!*"));
+			try {
+				backupEditBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), "*Playlist has been successfully backed up!*"));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), backupEditBuilder.build()).submit();
 			break;
 			
 		case "backbutton":
 			event.deferEdit().submit();
 			MessageEditBuilder backBuilder = new MessageEditBuilder();
-			backBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), ""));
+			try {
+				backBuilder.applyCreateData(Management.managementDisplay(event.getUser().getId(), ""));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), backBuilder.build()).submit();
 			break;
 		case "allowbutton":
@@ -70,7 +102,12 @@ public class ButtonHandler extends ListenerAdapter {
 			PlayList apl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
 			apl.setWhitelist((String)Manager.getUsers().get(event.getUser().getId()).getAttribute("manageWhitelistSelection"), true);
 			MessageEditBuilder allowBuilder = new MessageEditBuilder();
-			allowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			try {
+				allowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), allowBuilder.build()).submit();
 			break;
 		case "disallowbutton":
@@ -78,7 +115,12 @@ public class ButtonHandler extends ListenerAdapter {
 			PlayList dpl = Manager.playlistMap.get(Manager.getUsers().get(event.getUser().getId()).getAttribute("managePlaylistSelection"));
 			dpl.setWhitelist((String)Manager.getUsers().get(event.getUser().getId()).getAttribute("manageWhitelistSelection"), false);
 			MessageEditBuilder disallowBuilder = new MessageEditBuilder();
-			disallowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			try {
+				disallowBuilder.applyCreateData(Management.whitelistDisplay(event.getUser().getId()));
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			event.getHook().editMessageById(event.getMessageId(), disallowBuilder.build()).submit();
 			break;
 		}

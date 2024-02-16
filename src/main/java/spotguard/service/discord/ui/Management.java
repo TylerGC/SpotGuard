@@ -22,7 +22,7 @@ import spotguard.service.spotify.SpotifyAPI;
 
 public class Management {
 	
-	public static MessageCreateData managementDisplay(String did, String message) { 
+	public static MessageCreateData managementDisplay(String did, String message) throws InterruptedException, ExecutionException { 
 		MessageCreateBuilder builder = new MessageCreateBuilder();
 		if (Manager.getUsers().get(did) == null) {
 			System.err.println("User needs to register.");
@@ -33,7 +33,7 @@ public class Management {
 			ArrayList<SelectOption> playlists = new ArrayList<SelectOption>();
 			Future<Paging<PlaylistSimplified>> playlistsFuture = SpotifyAPI.getAPI().getListOfUsersPlaylists(sid).build().executeAsync();
 			PlaylistSimplified[] psa = new PlaylistSimplified[0];
-			try {
+//			try {
 				psa = playlistsFuture.get().getItems();
 			for (PlaylistSimplified ps : psa) {
 				if (ps.getIsPublicAccess() && ps.getOwner().getId().equals(sid)) {
@@ -41,7 +41,7 @@ public class Management {
 						PlayList pl = new PlayList(ps.getId(), ps.getOwner().getId(), did);
 						for (int i = 0; i < 110; i++) {
 							final CompletableFuture<Paging<PlaylistTrack>> tracksFuture = SpotifyAPI.getAPI().getPlaylistsItems(pl.getPlaylistID()).offset(i * 100).build().executeAsync();
-							PlaylistTrack[] tracks = tracksFuture.join().getItems();
+							PlaylistTrack[] tracks = tracksFuture.get().getItems();
 							for (PlaylistTrack plt : tracks) {
 								pl.getWhitelist().put(plt.getAddedBy().getId(), true);
 							}
@@ -63,21 +63,21 @@ public class Management {
 			builder.addActionRow(playlistMenu);
 			//TODO Break out buttons? Make it so Restore is disabled if no backup present.
 			builder.addActionRow(Button.of(ButtonStyle.PRIMARY, "whitelistbutton", "Whitelist"), Button.of(ButtonStyle.PRIMARY, "backupbutton", "Backup").asDisabled(), Button.of(ButtonStyle.PRIMARY, "protectbutton", "Protect"), Button.of(ButtonStyle.DANGER, "stopbutton", "Stop"), Button.of(ButtonStyle.SECONDARY, "restorebutton", "Restore").asDisabled());
-			} catch (InterruptedException | ExecutionException e) {
+//			} catch (InterruptedException | ExecutionException e) {
 				//Shit we're dumb lmao, use e.getCause() to retrieve the TooManyRequestsException in order to get the retry time... gah damn lmao.
 				//((TooManyRequestsException)e.getCause()).getRetryAfter();
 				//Also have UnauthorizedException: The access token expired //obviously this is when we would request the user for a new token. :)
 				//
 				//IMPORTANT: We're going to have to make managementDisplay() THROW the error(s), so we can catch them in a place that allows us to send
 				//this request back to the right place, like where the Event is.
-				if (e.getMessage().contains("Too Many Requests")) {
-					System.out.println("Getting throttled!");
-					SpotifyAPI.throttleWait();
+//				if (e.getMessage().contains("Too Many Requests")) {
+//					System.out.println("Getting throttled!");
+//					SpotifyAPI.throttleWait();
 //					managementDisplay(did, message);
-					return null;
-				}
-				e.printStackTrace();
-			}
+//					return null;
+//				}
+//				e.printStackTrace();
+//			}
 			return builder.build();
 //		} catch (ParseException | SpotifyWebApiException | IOException e) {
 //			if (e instanceof UnauthorizedException) {
@@ -91,14 +91,14 @@ public class Management {
 //		return null;
 	}
 	
-	public static MessageCreateData whitelistDisplay(String did) {
+	public static MessageCreateData whitelistDisplay(String did) throws InterruptedException, ExecutionException {
 		//"managementWhitelist"
 		MessageCreateBuilder builder = new MessageCreateBuilder();
 		ArrayList<SelectOption> users = new ArrayList<SelectOption>();
 		PlayList pl = Manager.playlistMap.get((String)Manager.getUsers().get(did).getAttribute(("managePlaylistSelection")));
 			for (String id : pl.getWhitelistMembers()) {
 				final CompletableFuture<User> userFuture = SpotifyAPI.getAPI().getUsersProfile(id).build().executeAsync();
-				User user = userFuture.join();
+				User user = userFuture.get();
 				users.add(SelectOption.of(user.getDisplayName(), id).withDescription(pl.isWhitelisted(user.getId()) ? "Allowed" : "Disallowed"));
 
 			}		

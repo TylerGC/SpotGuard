@@ -1,6 +1,7 @@
 package spotguard.service.discord;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutionException;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -44,7 +45,12 @@ public class CommandHandler extends ListenerAdapter {
 			}
 		} else if (event.getName().contentEquals("manage")) {
 			event.deferReply(true).submit();
-			event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
+			try {
+				event.getHook().sendMessage(Management.managementDisplay(event.getUser().getId(), "")).setEphemeral(true).submit();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else if (event.getName().contentEquals("save")) {
 			event.deferReply(true).submit();
 			Controller.saveConfig();
