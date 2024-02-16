@@ -21,12 +21,6 @@ import spotguard.manage.PlayList;
 import spotguard.service.spotify.SpotifyAPI;
 
 public class Management {
-
-	//Oh man... might want to think this system out some first. Didn't think Discord was so limited in what Modals will show.
-	//Turns out you can't add text on it's own at all.
-	//
-	//Should definitely utilize StringSelectMenu. Probably create a Player-like "session" system so can track the selections by action...
-	//https://javadoc.io/doc/net.dv8tion/JDA/latest/net/dv8tion/jda/api/interactions/components/selections/StringSelectMenu.html#create(java.lang.String)
 	
 	public static MessageCreateData managementDisplay(String did, String message) { 
 		MessageCreateBuilder builder = new MessageCreateBuilder();
